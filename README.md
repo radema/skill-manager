@@ -6,8 +6,28 @@ A lightweight tool to manage a local marketplace of agentic skills retrieved fro
 
 This project is managed by `uv`.
 
+### From GitHub
+
+To install the latest version directly from GitHub:
+
+**Using uv:**
+
 ```bash
-uv pip install -e /root/skm-manager
+uv pip install git+https://github.com/radema/skill-manager.git
+```
+
+**Using pip:**
+
+```bash
+pip install git+https://github.com/radema/skill-manager.git
+```
+
+### For Local Development
+
+To install the current folder in editable mode:
+
+```bash
+uv pip install -e .
 ```
 
 ## Features
@@ -22,13 +42,13 @@ uv pip install -e /root/skm-manager
 ### Add a skill set (folder `skills/` only)
 
 ```bash
-skm add https://github.com/google/dbx-ml-pipelines
+skm add <repo-url>
 ```
 
 ### Add a full repository
 
 ```bash
-skm add https://github.com/google/dbx-ml-pipelines --full
+skm add <repo-url> --full
 ```
 
 ### Sync all items
@@ -52,9 +72,9 @@ skm list
 ### Remove an item
 
 ```bash
-skm remove google-dbx-ml-pipelines
+skm remove <repo-skill-name>
 ```
 
 ## Marketplace Location
 
-All skills are stored in: `/root/.skills-marketplace/`
+All skills are stored in: `./.skills-marketplace/`
