@@ -1,0 +1,17 @@
+[project]
+name = "skm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Raul De Maio", email = "raul.demaio@openeconomics.eu" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+skm = "skm:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
