@@ -55,11 +55,18 @@ def add_skill(url, full=False):
         print("Fetching content...")
         # Get the default branch or common ones
         branch = "main"
-        # We use fetch first with single branch constraint
-        res = subprocess.run(["git", "fetch", "--depth", "1", "origin", "main"], cwd=target_path, capture_output=True, text=True)
-        if res.returncode != 0:
-            branch = "master"
-            subprocess.run(["git", "fetch", "--depth", "1", "origin", "master"], cwd=target_path, check=True, capture_output=True)
+
+        # Query remote for the default branch to avoid trial-and-error
+        res = subprocess.run(["git", "ls-remote", "--symref", "origin", "HEAD"], cwd=target_path, capture_output=True, text=True, check=True)
+        for line in res.stdout.splitlines():
+            if line.startswith("ref: refs/heads/"):
+                branch = line.split("\t")[0].replace("ref: refs/heads/", "").strip()
+                break
+
+        if branch not in ["main", "master"]:
+            print(f"Warning: Default branch is '{branch}' which is neither 'main' nor 'master'.")
+
+        subprocess.run(["git", "fetch", "--depth", "1", "origin", branch], cwd=target_path, check=True, capture_output=True)
         
         # Reset to the fetched branch to establish tracking
         subprocess.run(["git", "reset", "--hard", f"origin/{branch}"], cwd=target_path, check=True, capture_output=True)
