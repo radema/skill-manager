@@ -77,6 +77,24 @@ def add_skill(url, full=False):
         if 'target_path' in locals() and target_path.exists():
             shutil.rmtree(target_path)
 
+def _sync_repo(item):
+    """Helper function to sync a single repository."""
+    if not (item.is_dir() and (item / ".git").exists()):
+        return None, None
+
+    repo_name = item.name
+    res = subprocess.run(["git", "pull"], cwd=item, capture_output=True, text=True)
+
+    if "no tracking information" in res.stderr.lower() or "specify which branch" in res.stderr.lower():
+        branch_res = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=item, capture_output=True, text=True)
+        branch = branch_res.stdout.strip()
+        res = subprocess.run(["git", "pull", "origin", branch], cwd=item, capture_output=True, text=True)
+
+    if res.returncode == 0:
+        return repo_name, "Done."
+    else:
+        return repo_name, f"Failed. {res.stderr.strip()}"
+
 def sync_all(target=None):
     """Update all or a specific item in the marketplace."""
     if not MARKETPLACE_ROOT.exists():
