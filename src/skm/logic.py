@@ -110,22 +110,12 @@ def sync_all(target=None):
         print("Syncing all items in marketplace...")
         items = [item for item in MARKETPLACE_ROOT.iterdir() if item.is_dir() and (item / ".git").exists()]
 
-    for item in items:
-        if item.is_dir() and (item / ".git").exists():
-            print(f"Updating {item.name}...")
-            # Attempt a standard pull
-            res = subprocess.run(["git", "pull"], cwd=item, capture_output=True, text=True)
-
-            # If tracking is missing, try to find the current branch and pull from origin
-            if "no tracking information" in res.stderr.lower() or "specify which branch" in res.stderr.lower():
-                branch_res = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=item, capture_output=True, text=True)
-                branch = branch_res.stdout.strip()
-                res = subprocess.run(["git", "pull", "origin", branch], cwd=item, capture_output=True, text=True)
-
-            if res.returncode == 0:
-                print(f"  - {item.name}: Done.")
-            else:
-                print(f"  - {item.name}: Failed. {res.stderr.strip()}")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_repo = {executor.submit(_sync_repo, item): item for item in items}
+        for future in concurrent.futures.as_completed(future_to_repo):
+            repo_name, result = future.result()
+            if repo_name:
+                print(f"  - {repo_name}: {result}")
 
 def list_skills():
     """List all available skill-sets in the marketplace."""
