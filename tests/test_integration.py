@@ -101,5 +101,26 @@ class Benchmark(unittest.TestCase):
     def test_benchmark_develop(self):
         self.run_benchmark("repo-dev", "develop")
 
+    def test_sync_all(self):
+        # Add a couple of repos
+        skm.logic.add_skill(f"file://{UPSTREAM_DIR / 'repo-main'}")
+        skm.logic.add_skill(f"file://{UPSTREAM_DIR / 'repo-master'}")
+
+        # Add a non-repo directory
+        (MARKETPLACE_DIR / "not-a-repo").mkdir()
+        (MARKETPLACE_DIR / "some-file.txt").touch()
+
+        # Mock print to capture output
+        with patch("builtins.print") as mock_print:
+            skm.logic.sync_all()
+
+            # Verify that sync_all was called for the repos
+            # The output should contain the repo names
+            output_lines = [c.args[0] for c in mock_print.call_args_list if c.args]
+            self.assertTrue(any("upstream-repo-main: Done." in s for s in output_lines))
+            self.assertTrue(any("upstream-repo-master: Done." in s for s in output_lines))
+            # And should NOT contain the non-repo
+            self.assertFalse(any("not-a-repo" in s for s in output_lines if ":" in s))
+
 if __name__ == '__main__':
     unittest.main()
