@@ -115,7 +115,13 @@ def sync_all(target=None):
             return
     else:
         print("Syncing all items in marketplace...")
-        items = [item for item in MARKETPLACE_ROOT.iterdir() if item.is_dir() and (item / ".git").exists()]
+        # Use a generator with os.scandir to avoid blocking the main thread while scanning.
+        def get_items():
+            with os.scandir(MARKETPLACE_ROOT) as it:
+                for entry in it:
+                    if entry.is_dir() and os.path.exists(os.path.join(entry.path, ".git")):
+                        yield Path(entry.path)
+        items = get_items()
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_repo = {executor.submit(_sync_repo, item): item for item in items}
